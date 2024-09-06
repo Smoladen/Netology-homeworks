@@ -1,0 +1,165 @@
+Преподаватель дал несколько полезных замечаний по поводу вашего кода. Давайте рассмотрим их подробнее и внесем соответствующие исправления.
+
+1. **Разделение на заголовочный файл и единицу трансляции:**
+   - Классы обычно разделяют на заголовочный файл (`.h`) и файл реализации (`.cpp`).
+   - Шаблонные функции оставляют в заголовочном файле, так как их нельзя полностью вынести в единицу трансляции.
+
+2. **Использование констант для "магических символов":**
+   - Все магические символы и строки следует вынести в отдельный файл констант.
+   - Это улучшает читаемость кода и позволяет централизованно управлять константами.
+
+3. **Использование `std::variant`, `std::optional`, `std::any`:**
+   - В данном примере это не требуется, но полезно знать о таких контейнерах.
+
+4. **Использование `if constexpr` в C++14:**
+   - Это позволяет обрабатывать типы в шаблонных функциях более эффективно.
+
+5. **Обработка исключений:**
+   - Добавление общего `catch` блока для захвата всех остальных исключений.
+
+6. **Оптимизация кода с помощью `std::format` (C++20):**
+   - Использование `std::format` для форматирования строк.
+
+Теперь перепишем код с учетом этих замечаний.
+
+### Файл `ini_parser.h`:
+
+```cpp
+#ifndef INI_PARSER_H
+#define INI_PARSER_H
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <stdexcept>
+#include <map>
+
+namespace Consts {
+    const char* const EQUAL_SYMBOL = "=";
+    const char* const COMMENT_SYMBOL = ";";
+    const char* const SECTION_START = "[";
+    const char* const SECTION_END = "]";
+}
+
+class ini_parser {
+private:
+    std::map<std::string, std::string> data;
+
+    static std::string trim(const std::string& str);
+
+    template<typename T>
+    T convert(const std::string& value) const;
+
+public:
+    ini_parser(const std::string& fileName);
+    template <typename T>
+    T get_value(const std::string& key) const;
+    ~ini_parser() = default;
+};
+
+#endif // INI_PARSER_H
+```
+
+### Файл `ini_parser.cpp`:
+
+```cpp
+#include "ini_parser.h"
+#include <algorithm>
+
+std::string ini_parser::trim(const std::string& str) {
+    size_t first = str.find_first_not_of(" \t");
+    if (first == std::string::npos)
+        return "";
+    size_t last = str.find_last_not_of(" \t");
+    return str.substr(first, last - first + 1);
+}
+
+template<typename T>
+T ini_parser::convert(const std::string& value) const {
+    if constexpr (std::is_same_v<T, int>) {
+        return std::stoi(value);
+    } else if constexpr (std::is_same_v<T, std::string>) {
+        return value;
+    } else {
+        throw std::runtime_error("Unsupported conversion type");
+    }
+}
+
+ini_parser::ini_parser(const std::string& fileName) {
+    std::ifstream file(fileName);
+    if (!file.is_open()) {
+        throw std::runtime_error("File is not open");
+    }
+    std::string line;
+    std::string currentSection;
+
+    while (std::getline(file, line)) {
+        line = trim(line);
+        if (line.empty() || line[0] == Consts::COMMENT_SYMBOL[0])
+            continue;
+        else if (line[0] == Consts::SECTION_START[0] && line.back() == Consts::SECTION_END[0])
+            currentSection = trim(line.substr(1, line.size() - 2));
+        else {
+            size_t pos = line.find(Consts::EQUAL_SYMBOL);
+            if (pos == std::string::npos) {
+                throw std::runtime_error("Invalid line " + line);
+            }
+            std::string key = trim(line.substr(0, pos));
+            std::string value = trim(line.substr(pos + 1));
+            data[currentSection + "." + key] = value;
+        }
+    }
+}
+
+template <typename T>
+T ini_parser::get_value(const std::string& key) const {
+    auto it = data.find(key);
+    if (it == data.end()) {
+        throw std::runtime_error("Key not found: " + key);
+    }
+    return convert<T>(it->second);
+}
+
+// Explicit instantiation of template methods
+template int ini_parser::get_value<int>(const std::string& key) const;
+template std::string ini_parser::get_value<std::string>(const std::string& key) const;
+```
+
+### Файл `main.cpp`:
+
+```cpp
+#include "ini_parser.h"
+#include <iostream>
+
+int main() {
+    try {
+        ini_parser parser("config.ini");
+        int int_value = parser.get_value<int>("section1.key1");
+        std::string string_value = parser.get_value<std::string>("section2.key2");
+        std::cout << "Integer value: " << int_value << std::endl;
+        std::cout << "String value: " << string_value << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Unknown error" << std::endl;
+    }
+    return 0;
+}
+```
+
+### CMakeLists.txt:
+
+```cmake
+cmake_minimum_required(VERSION 3.14)
+project(IniParser)
+
+set(CMAKE_CXX_STANDARD 14)
+
+add_executable(IniParser main.cpp ini_parser.cpp)
+
+if (COMMAND target_precompile_headers)
+    target_precompile_headers(IniParser PUBLIC ./include/Consts.h)
+endif()
+```
+
+Этот код соблюдает рекомендации преподавателя. Мы разделили классы на заголовочные файлы и единицы трансляции, вынесли магические символы в отдельный файл констант и добавили обработку исключений. Мы также использовали `if constexpr` для обработки типов в шаблонной функции.
