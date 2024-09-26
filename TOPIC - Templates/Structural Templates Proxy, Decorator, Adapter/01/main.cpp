@@ -12,13 +12,13 @@ public:
 
 class DecoratedText : public Text {
 public:
-    explicit DecoratedText(Text* text) : text_(text) {}
-    Text* text_;
+    explicit DecoratedText(std::unique_ptr<Text> text) : text_(std::move(text)) {}
+    std::unique_ptr<Text> text_;
 };
 
 class ItalicText : public DecoratedText {
 public:
-    explicit ItalicText(Text* text) : DecoratedText(text) {}
+    explicit ItalicText(std::unique_ptr<Text> text) : DecoratedText(std::move(text)) {}
     void render(const std::string& data)  const  {
         std::cout << "<i>";
         text_->render(data);
@@ -28,7 +28,7 @@ public:
 
 class BoldText : public DecoratedText {
 public:
-    explicit BoldText(Text* text) : DecoratedText(text) {}
+    explicit BoldText(std::unique_ptr<Text> text) : DecoratedText(std::move(text)) {}
     void render(const std::string& data) const {
         std::cout << "<b>";
         text_->render(data);
@@ -38,7 +38,7 @@ public:
 
 class Paragraph: public DecoratedText{
 public:
-    explicit Paragraph(Text* text) : DecoratedText(text){}
+    explicit Paragraph(std::unique_ptr<Text> text) : DecoratedText(std::move(text)){}
     void render(const std::string& data) const{
     std::cout << "<p>";
     text_->render(data);
@@ -48,7 +48,7 @@ public:
 };
 class Reversed: public DecoratedText{
 public:
-    explicit Reversed(Text* text) : DecoratedText(text){}
+    explicit Reversed(std::unique_ptr<Text> text) : DecoratedText(std::move(text)){}
     void render(const std::string& data) const{
     std::string reversed_data = data;
     std::reverse(reversed_data.begin(), reversed_data.end());
@@ -57,7 +57,7 @@ public:
 };
 class Link: public DecoratedText{
 public:
-    explicit Link(Text* text) : DecoratedText(text){}
+    explicit Link(std::unique_ptr<Text> text) : DecoratedText(std::move(text)){}
     void render(const std::string& link, const std::string& data) const{
     std::cout << "<a href=";
     text_->render(link);
@@ -70,10 +70,10 @@ public:
 };
 
 int main() {
-    auto text_block = new ItalicText(new BoldText(new Text()));
-    auto new_paragraph = new Paragraph(new Text());
-    auto reversed = new Reversed(new Text());
-    auto link = new Link(new Text());
+    auto text_block = std::make_unique<ItalicText>(std::make_unique<BoldText>(std::make_unique<Text>()));
+    auto new_paragraph = std::make_unique<Paragraph>(std::make_unique<Text>());
+    auto reversed = std::make_unique<Reversed>(std::make_unique<Text>());
+    auto link = std::make_unique<Link>(std::make_unique<Text>());
 
     text_block->render("Hello world");
     std::cout << "\n";
