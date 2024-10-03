@@ -6,18 +6,20 @@
 #include <stdexcept>
 
 
-enum class Type {
+enum class MessageType {
     Warning,
     Error,
     FatalError,
     Unknown
 };
 
+
 class LogMessage {
 public:
-    LogMessage(Type type, const std::string& message) : _type(type), _message(message) {}
+    LogMessage(MessageType type, const std::string& message)
+        : _type(type), _message(message) {}
 
-    Type type() const {
+    MessageType type() const {
         return _type;
     }
 
@@ -26,13 +28,13 @@ public:
     }
 
 private:
-    Type _type;
+    MessageType _type;
     std::string _message;
 };
 
 
 class LogHandler {
-protected:
+private:
     std::shared_ptr<LogHandler> nextHandler;
 
 public:
@@ -42,23 +44,31 @@ public:
         nextHandler = handler;
     }
 
-    virtual void handle(const LogMessage& logMessage) {
-        if (nextHandler) {
-            nextHandler->handle(logMessage);
+    void receiveMessage(const LogMessage& msg) {
+        if (canHandle() == msg.type()) {
+            handleMessage(msg);
+        } else if (nextHandler) {
+            nextHandler->receiveMessage(msg);
         } else {
-            throw std::runtime_error("Unprocessed message: " + logMessage.message());
+            throw std::runtime_error("Error: no handler for this message was found!");
         }
     }
+
+protected:
+    virtual void handleMessage(const LogMessage& msg) = 0;
+
+    virtual MessageType canHandle() const = 0;
 };
 
+
 class FatalErrorHandler : public LogHandler {
-public:
-    void handle(const LogMessage& logMessage) override {
-        if (logMessage.type() == Type::FatalError) {
-            throw std::runtime_error("Fatal Error: " + logMessage.message());
-        } else {
-            LogHandler::handle(logMessage);
-        }
+protected:
+    void handleMessage(const LogMessage& msg) override {
+        throw std::runtime_error("Fatal Error: " + msg.message());
+    }
+
+    MessageType canHandle() const override {
+        return MessageType::FatalError;
     }
 };
 
@@ -69,38 +79,39 @@ private:
 public:
     explicit ErrorHandler(const std::string& path) : filePath(path) {}
 
-    void handle(const LogMessage& logMessage) override {
-        if (logMessage.type() == Type::Error) {
-            std::ofstream outFile(filePath, std::ios_base::app);
-            if (outFile.is_open()) {
-                outFile << "Error: " << logMessage.message() << std::endl;
-            } else {
-                std::cerr << "Cannot open file: " << filePath << std::endl;
-            }
+protected:
+    void handleMessage(const LogMessage& msg) override {
+        std::ofstream outFile(filePath, std::ios_base::app);
+        if (outFile.is_open()) {
+            outFile << "Error: " << msg.message() << std::endl;
         } else {
-            LogHandler::handle(logMessage);
+            std::cerr << "Cannot open file: " << filePath << std::endl;
         }
+    }
+
+    MessageType canHandle() const override {
+        return MessageType::Error;
     }
 };
 
 class WarningHandler : public LogHandler {
-public:
-    void handle(const LogMessage& logMessage) override {
-        if (logMessage.type() == Type::Warning) {
-            std::cout << "Warning: " << logMessage.message() << std::endl;
-        } else {
-            LogHandler::handle(logMessage);
-        }
+protected:
+    void handleMessage(const LogMessage& msg) override {
+        std::cout << "Warning: " << msg.message() << std::endl;
+    }
+
+    MessageType canHandle() const override {
+        return MessageType::Warning;
     }
 };
 
 class UnknownMessageHandler : public LogHandler {
-public:
-    void handle(const LogMessage& logMessage) override {
-        if (logMessage.type() == Type::Unknown) {
-            throw std::runtime_error("Unknown message: " + logMessage.message());
-        } else {
-            LogHandler::handle(logMessage);
-        }
+protected:
+    void handleMessage(const LogMessage& msg) override {
+        throw std::runtime_error("Unknown message: " + msg.message());
+    }
+
+    MessageType canHandle() const override {
+        return MessageType::Unknown;
     }
 };

@@ -8,7 +8,6 @@
 
 
 int main() {
-
     auto fatalHandler = std::make_shared<FatalErrorHandler>();
     auto errorHandler = std::make_shared<ErrorHandler>("error_log.txt");
     auto warningHandler = std::make_shared<WarningHandler>();
@@ -18,18 +17,16 @@ int main() {
     warningHandler->setNextHandler(errorHandler);
     errorHandler->setNextHandler(fatalHandler);
 
-
-    LogMessage warningMessage(Type::Warning, "This is a warning");
-    LogMessage errorMessage(Type::Error, "This is an error");
-    LogMessage fatalMessage(Type::FatalError, "This is a fatal error");
-    LogMessage unknownMessage(Type::Unknown, "This is an unknown message");
-
+    LogMessage warningMessage(MessageType::Warning, "This is a warning");
+    LogMessage errorMessage(MessageType::Error, "This is an error");
+    LogMessage fatalMessage(MessageType::FatalError, "This is a fatal error");
+    LogMessage unknownMessage(MessageType::Unknown, "This is an unknown message");
 
     try {
-        unknownHandler->handle(warningMessage);
-        unknownHandler->handle(errorMessage);
-        unknownHandler->handle(fatalMessage);
-        unknownHandler->handle(unknownMessage);
+        unknownHandler->receiveMessage(warningMessage);
+        unknownHandler->receiveMessage(errorMessage);
+        unknownHandler->receiveMessage(fatalMessage);
+        unknownHandler->receiveMessage(unknownMessage);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     }

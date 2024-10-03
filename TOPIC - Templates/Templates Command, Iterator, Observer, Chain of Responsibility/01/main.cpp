@@ -7,7 +7,7 @@ public:
     virtual void print(const std::string& message) = 0;
 };
 
-class print_message : public LogCommand{
+class PrintMessage  : public LogCommand{
 public:
     void print(const std::string& message) override {
         std::cout << message << std::endl;
@@ -15,11 +15,11 @@ public:
 };
 
 
-class message_in_file : public LogCommand{
+class MessageInFile : public LogCommand{
 private:
     std::string filePath;
 public:
-    explicit message_in_file(const std::string& path) : filePath(path) {}
+    explicit MessageInFile(const std::string& path) : filePath(path) {}
 
     void print(const std::string& message) override {
         std::ofstream outFile(filePath, std::ios_base::app);
@@ -34,8 +34,8 @@ public:
 
 int main()
 {
-    print_message consoleLogger;
-    message_in_file fileLogger("log.txt");
+    PrintMessage consoleLogger;
+    MessageInFile fileLogger("log.txt");
 
     consoleLogger.print("Message");
     fileLogger.print("Message for file");
