@@ -28,8 +28,8 @@
 ## :mortar_board: Образование
 
 **2010**  
-Christian Education Europe, Шрайвенхем, Англия  
-«Специальность», факультет, степень (бакалавр, специалист, магистр)
+International Certificate of Christian Education (ICCE Global)/Christian Education Europe,
+ Шрайвенхем, Англия 
 
 ## :books: Курсы и тренинги
 
