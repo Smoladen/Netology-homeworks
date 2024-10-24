@@ -13,10 +13,10 @@ MainWindow::MainWindow(QWidget *parent)
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplay);
 
-    // Изначально кнопка "Круг" неактивна
+
     ui->lapButton->setEnabled(false);
 
-    // Устанавливаем начальное значение на лейбле времени
+
     ui->timeLabel->setText("0.0");
 }
 
@@ -29,15 +29,15 @@ MainWindow::~MainWindow()
 void MainWindow::on_startStopButton_clicked()
 {
     if (running) {
-        // Остановка секундомера
+
         timer->stop();
         running = false;
         ui->startStopButton->setText("Start");
         ui->lapButton->setEnabled(false);
     } else {
-        // Запуск секундомера
+
         elapsedTimer.start();
-        timer->start(100); // Обновляем каждую 0.1 секунды
+        timer->start(100);
         running = true;
         ui->startStopButton->setText("Stop");
         ui->lapButton->setEnabled(true);
@@ -47,7 +47,7 @@ void MainWindow::on_startStopButton_clicked()
 
 void MainWindow::on_resetButton_clicked()
 {
-    // Сброс всех данных
+
     timer->stop();
     running = false;
     lapCounter = 0;
@@ -69,7 +69,7 @@ void MainWindow::on_lapButton_clicked()
 }
 
 void MainWindow::updateDisplay() {
-    // Обновляем время на лейбле каждую 0.1 секунды
+
     qint64 time = elapsedTimer.elapsed();
-    ui->timeLabel->setText(QString::number(time / 1000.0, 'f', 1)); // Время в секундах
+    ui->timeLabel->setText(QString::number(time / 1000.0, 'f', 1));
 }
