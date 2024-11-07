@@ -220,13 +220,14 @@ void MainWindow::on_pb_start_clicked()
                                                 mins = FindMin(res);
                                                 DisplayResult(mins, maxs);
 
-                                                QLineSeries* series = new QLineSeries();
+                                               // QLineSeries* series = new QLineSeries();
+                                                auto series = std::make_unique<QLineSeries>();
                                                // int sampleCount = std::min(static_cast<int>(FD), static_cast<int>(res.size()));  //Первые 1000 шагов
                                                 for (int i = 0; i < MAX_POINT; ++i) {
                                                     series->append(i / FD, res[i]);
                                                 }
 
-                                                emit dataReadyForChart(series);
+                                                emit dataReadyForChart(series.release());
 
                                              };
 
@@ -253,5 +254,15 @@ void MainWindow::showChart(QLineSeries* series){
     layout->addWidget(chartView);
     chartDialog->setLayout(layout);
     chartDialog->resize(800, 600);
+
+    connect(chartDialog, &QDialog::finished, this, [=](){
+        chartDialog->deleteLater();
+        series->deleteLater();
+        chart->deleteLater();
+        chartView->deleteLater();
+        // вроде как если освободить chartDialog, chart и chartView освобождены вместе с ним. Но на всякий случай.
+    });
+
+
     chartDialog->exec();
 }
