@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     chart = new QChart();
     chartView = new QChartView(chart);
     chartDialog = new QDialog(this);
+    layout = new QVBoxLayout(chartDialog);
 
 connect(this, &MainWindow::dataReadyForChart, this, &MainWindow::showChart);
 }
@@ -20,6 +21,7 @@ MainWindow::~MainWindow()
     delete chart;
     delete chartView;
     delete chartDialog;
+    delete layout;
     delete ui;
 }
 
@@ -255,13 +257,10 @@ void MainWindow::showChart(QLineSeries* series){
 
     chartView->setRenderHint(QPainter::Antialiasing);
 
-    QVBoxLayout* layout = new QVBoxLayout(chartDialog);
+
     layout->addWidget(chartView);
     chartDialog->setLayout(layout);
     chartDialog->resize(800, 600);
-
-
-
 
     chartDialog->exec();
 }

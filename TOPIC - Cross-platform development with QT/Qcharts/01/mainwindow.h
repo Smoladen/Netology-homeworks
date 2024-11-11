@@ -58,5 +58,6 @@ private:
     QChart* chart;
     QChartView* chartView;
     QDialog* chartDialog;
+    QVBoxLayout* layout;
 };
 #endif // MAINWINDOW_H
