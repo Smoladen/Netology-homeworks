@@ -8,11 +8,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->pb_clearResult->setCheckable(true);
 
+    chart = new QChart();
+    chartView = new QChartView(chart);
+    chartDialog = new QDialog(this);
+
 connect(this, &MainWindow::dataReadyForChart, this, &MainWindow::showChart);
 }
 
 MainWindow::~MainWindow()
 {
+    delete chart;
+    delete chartView;
+    delete chartDialog;
     delete ui;
 }
 
@@ -240,14 +247,12 @@ void MainWindow::on_pb_start_clicked()
 }
 
 void MainWindow::showChart(QLineSeries* series){
-    QDialog* chartDialog = new QDialog(this);
+
     chartDialog->setWindowTitle("График Данных");
 
-    QChart* chart = new QChart();
     chart->addSeries(series);
     chart->createDefaultAxes();
 
-    QChartView* chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
 
     QVBoxLayout* layout = new QVBoxLayout(chartDialog);
@@ -255,13 +260,7 @@ void MainWindow::showChart(QLineSeries* series){
     chartDialog->setLayout(layout);
     chartDialog->resize(800, 600);
 
-    connect(chartDialog, &QDialog::finished, this, [=](){
-        chartDialog->deleteLater();
-        series->deleteLater();
-        chart->deleteLater();
-        chartView->deleteLater();
-        // вроде как если освободить chartDialog, chart и chartView освобождены вместе с ним. Но на всякий случай.
-    });
+
 
 
     chartDialog->exec();
