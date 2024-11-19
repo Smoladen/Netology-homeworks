@@ -72,7 +72,10 @@ void DataBase::RequestToDB(QString request)
     ///Тут должен быть код ДЗ
 
 }
-
+QSqlDatabase* DataBase::getDatabase() const
+{
+    return dataBase;
+}
 /*!
  * @brief Метод возвращает последнюю ошибку БД
  */

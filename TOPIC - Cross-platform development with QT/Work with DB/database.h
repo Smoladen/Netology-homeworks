@@ -47,7 +47,7 @@ public:
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
 
-
+ QSqlDatabase* getDatabase() const;
 
 signals:
 
