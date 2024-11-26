@@ -9,8 +9,10 @@ MainWindow::MainWindow(QWidget *parent)
     //Исходное состояние виджетов
     ui->setupUi(this);
 
-    connect(ui->cb_category, SIGNAL(currentTextChanged(QString)), this, SLOT(on_filter_changed(QString)));
-    connect(ui->pb_clear, SIGNAL(clicked()), this, SLOT(on_pb_clear_clicked()));
+    connect(ui->cb_category, &QComboBox::currentTextChanged, this, &MainWindow::on_filter_changed);
+    connect(ui->pb_clear, &QPushButton::clicked, this, &MainWindow::on_pb_clear_clicked);
+
+
 
     ui->lb_statusConnect->setStyleSheet("color:red");
     ui->pb_request->setEnabled(false);
@@ -137,7 +139,7 @@ void MainWindow::on_pb_request_clicked()
 }
 void MainWindow::on_filter_changed(QString filter)
 {
-    if (filter == "All")
+    if (filter == "Все")
     {
         tableModel = new QSqlTableModel(this, *dataBase->getDatabase());
         tableModel->setTable("film");
@@ -151,11 +153,11 @@ void MainWindow::on_filter_changed(QString filter)
         queryModel = new QSqlQueryModel(this);
         QString queryStr;
 
-        if (filter == "Comedy")
+        if (filter == "Комедия")
         {
             queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id WHERE category.name = 'Comedy'";
         }
-        else if (filter == "Horror")
+        else if (filter == "Ужасы")
         {
             queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id WHERE category.name = 'Horror'";
         }
@@ -168,7 +170,7 @@ void MainWindow::on_filter_changed(QString filter)
 }
 void MainWindow::on_pb_clear_clicked()
 {
-    ui->tableView->setModel(nullptr);  // Очищаем модель
+    ui->tableView->setModel(nullptr);
 }
 /*!
  * \brief Слот отображает значение в QTableWidget
