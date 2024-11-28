@@ -40,6 +40,13 @@ void UDPworker::ReadDatagram(QNetworkDatagram datagram)
     inStr >> dateTime;
 
     emit sig_sendTimeToGUI(dateTime);
+//    QString senderAddress = datagram.senderAddress().toString();
+//    int messageSize = datagram.data().size();
+//    QString message = QString("Accept message from %1, message size (bytes): %2")
+//                          .arg(senderAddress)
+//                          .arg(messageSize);
+
+//    emit sig_receivedMessage(message);
 }
 /*!
  * @brief Метод осуществляет опередачу датаграммы
@@ -65,4 +72,30 @@ void UDPworker::readPendingDatagrams( void )
             ReadDatagram(datagram);
     }
 
+}
+void UDPworker::InitMoneySocket()
+{
+    moneyUdpSocket = new QUdpSocket(this);
+    moneyUdpSocket->bind(QHostAddress::LocalHost, BIND_PORT + 1);  // Use a different port
+
+    connect(moneyUdpSocket, &QUdpSocket::readyRead, this, &UDPworker::readPendingMoneyDatagrams);
+}
+
+void UDPworker::SendMoneyDatagram(QByteArray data)
+{
+    moneyUdpSocket->writeDatagram(data, QHostAddress::LocalHost, BIND_PORT + 1);
+}
+
+void UDPworker::readPendingMoneyDatagrams(void)
+{
+    while (moneyUdpSocket->hasPendingDatagrams()) {
+            QNetworkDatagram datagram = moneyUdpSocket->receiveDatagram();
+            QString senderAddress = datagram.senderAddress().toString();
+            int messageSize = datagram.data().size();
+            QString message = QString("Accept message from %1, message size (bytes): %2")
+                                  .arg(senderAddress)
+                                  .arg(messageSize);
+
+            emit sig_receivedMoneyMessage(message);
+    }
 }

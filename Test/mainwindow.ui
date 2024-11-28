@@ -29,6 +29,16 @@
      <widget class="QTextEdit" name="te_result"/>
     </item>
     <item>
+     <widget class="QLineEdit" name="le_input"/>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pb_editDatagram">
+      <property name="text">
+       <string>Отправить Датаграмму</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QPushButton" name="pb_stop">
       <property name="text">
        <string>Остановить передачу</string>

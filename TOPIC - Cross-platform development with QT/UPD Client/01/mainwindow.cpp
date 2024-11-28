@@ -8,12 +8,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     udpWorker = new UDPworker(this);
-    udpWorker->InitSocket();
+    udpWorker->InitSocketTime();
 
     connect(udpWorker, &UDPworker::sig_sendTimeToGUI, this, &MainWindow::DisplayTime);
-    connect(udpWorker, &UDPworker::sig_receivedMessage, this, &MainWindow::displayReceivedMessage);
 
-    connect(ui->pb_sendDatagram, &QPushButton::clicked, this, &MainWindow::on_pb_sendDatagram_clicked);
+
+
+    udpWorkerMS = new UDPworker(this);
+    udpWorkerMS->InitMSSocket();
+    connect(udpWorkerMS, &UDPworker::sig_receivedMessage, this, &MainWindow::datagramReceiveMS);
+
 
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, [&]{
@@ -21,11 +25,11 @@ MainWindow::MainWindow(QWidget *parent)
         QDateTime dateTime = QDateTime::currentDateTime();
 
         QByteArray dataToSend;
-        QDataStream outStr(&dataToSend, QIODevice::WriteOnly);
+        dataToSend.resize(sizeof(dateTime));
 
-        outStr << dateTime;
+        memcpy(dataToSend.data(), &dateTime, sizeof(dateTime));
 
-        udpWorker->SendDatagram(dataToSend);
+        udpWorker->SendTimeDatagram(dataToSend);
         timer->start(TIMER_DELAY);
 
     });
@@ -44,31 +48,49 @@ void MainWindow::on_pb_start_clicked()
 }
 
 
-void MainWindow::DisplayTime(QDateTime data)
+void MainWindow::DisplayTime(QByteArray data)
 {
     counterPck++;
+    QDateTime rcvDateTime;
+
+    memcpy(&rcvDateTime, data.data(), sizeof(rcvDateTime));
+
+
     if(counterPck % 20 == 0){
         ui->te_result->clear();
     }
 
-    ui->te_result->append("Текущее время: " + data.toString() + ". "
+    ui->te_result->append("Текущее время: " + rcvDateTime.toString() + ". "
                 "Принято пакетов " + QString::number(counterPck));
 
 
 }
+void MainWindow::datagramReceiveMS( QByteArray data, QNetworkDatagram datagram){
+    counterPck++;
+    QString str;
+
+    memcpy(&str, data.data(), sizeof(str));
+    if(counterPck % 20 == 0){
+        ui->te_result->clear();
+    }
+
+
+    ui->te_result->append(" Принято сообщение от: " + datagram.senderAddress().toString() + ", " + "размер сообщения " + QString::number(str.size()) );
+
+}
+
 void MainWindow::on_pb_sendDatagram_clicked()
 {
     QString textToSend = ui->le_input->text();
-    if (!textToSend.isEmpty()) {
-        udpWorker->SendDatagram(textToSend.toUtf8());
-        ui->le_input->clear();
-    }
+    QByteArray datastr;
+    datastr.resize(sizeof(textToSend));
+    memcpy(datastr.data(), &textToSend, sizeof(textToSend));
+
+    udpWorkerMS->SendMSDatagram(datastr);
+    ui->le_input->clear();
 }
 
-void MainWindow::displayReceivedMessage(const QString& message)
-{
-    ui->te_result->append(message);
-}
+
 
 
 void MainWindow::on_pb_stop_clicked()
