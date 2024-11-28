@@ -14,6 +14,7 @@ class UDPworker : public QObject
     Q_OBJECT
 public:
     explicit UDPworker(QObject *parent = nullptr);
+
     void InitSocketTime( void );
     void ReadTimeDatagram( QNetworkDatagram datagram);
     void SendTimeDatagram(QByteArray data );
