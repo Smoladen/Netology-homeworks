@@ -9,10 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
     //Исходное состояние виджетов
     ui->setupUi(this);
 
-    connect(ui->pb_clear, &QPushButton::clicked, this, &MainWindow::on_pb_clear_clicked);
-
-
-
     ui->lb_statusConnect->setStyleSheet("color:red");
     ui->pb_request->setEnabled(false);
 
