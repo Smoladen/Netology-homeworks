@@ -9,7 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
     //Исходное состояние виджетов
     ui->setupUi(this);
 
-    connect(ui->cb_category, &QComboBox::currentTextChanged, this, &MainWindow::on_filter_changed);
     connect(ui->pb_clear, &QPushButton::clicked, this, &MainWindow::on_pb_clear_clicked);
 
 
@@ -109,55 +108,30 @@ void MainWindow::on_pb_request_clicked()
 
     //new
 
-    int selectedGenre = ui->cb_category->currentIndex();
+    uint8_t selectedGenre = (ui->cb_category->currentIndex() + 1);
 
-    if (selectedGenre == requestAllFilms) {
-        if (tableModel == nullptr) {
-            tableModel = new QSqlTableModel(this, QSqlDatabase::database(DB_NAME));
-            tableModel->setTable("film");
-            tableModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
-        }
-        tableModel->setFilter("");
-        tableModel->select();
-        tableModel->setHeaderData(1, Qt::Horizontal, "Название фильма");
-        tableModel->setHeaderData(2, Qt::Horizontal, "Описание фильма");
-
-        ui->tableView->setModel(tableModel);
-    } else {
-        QString genre = (selectedGenre == requestComedy) ? "Comedy" : "Horror";
-        QString queryStr = QString("SELECT title, description FROM film f "
-                                   "JOIN film_category fc ON f.film_id = fc.film_id "
-                                   "JOIN category c ON c.category_id = fc.category_id "
-                                   "WHERE c.name = '%1'").arg(genre);
-
-        queryModel->setQuery(queryStr, QSqlDatabase::database(DB_NAME));
-        queryModel->setHeaderData(0, Qt::Horizontal, "Название фильма");
-        queryModel->setHeaderData(1, Qt::Horizontal, "Описание фильма");
-
-        ui->tableView->setModel(queryModel);
-    }
-}
-void MainWindow::on_filter_changed(QString filter)
-{
-    if (filter == "Все")
+    if (selectedGenre == requestAllFilms)
     {
-        tableModel = new QSqlTableModel(this, *dataBase->getDatabase());
-        tableModel->setTable("film");
-        tableModel->setHeaderData(0, Qt::Horizontal, tr("Movie Title"));
-        tableModel->setHeaderData(1, Qt::Horizontal, tr("Movie Description"));
-        tableModel->select();
-        ui->tableView->setModel(tableModel);
+
+        queryModel = new QSqlQueryModel(this);
+        QString queryStr;
+         queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id";
+        queryModel->setQuery(queryStr, *dataBase->getDatabase());
+        queryModel->setHeaderData(0, Qt::Horizontal, tr("Movie Title"));
+        queryModel->setHeaderData(1, Qt::Horizontal, tr("Movie Description"));
+        ui->tableView->setModel(queryModel);
+
     }
     else
     {
         queryModel = new QSqlQueryModel(this);
         QString queryStr;
 
-        if (filter == "Комедия")
+        if (selectedGenre == requestComedy)
         {
             queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id WHERE category.name = 'Comedy'";
         }
-        else if (filter == "Ужасы")
+        else if (selectedGenre == requestHorrors)
         {
             queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id WHERE category.name = 'Horror'";
         }
@@ -168,6 +142,7 @@ void MainWindow::on_filter_changed(QString filter)
         ui->tableView->setModel(queryModel);
     }
 }
+
 void MainWindow::on_pb_clear_clicked()
 {
     ui->tableView->setModel(nullptr);
