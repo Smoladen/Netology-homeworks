@@ -7,6 +7,10 @@
 #include <QSqlDatabase>
 #include  <QSqlTableModel>
 
+//new
+#include <QSqlQueryModel>
+#include <QTableView>
+
 #define POSTGRE_DRIVER "QPSQL"
 #define DB_NAME "MyDB"
 
@@ -32,7 +36,6 @@ enum requestType{
 };
 
 
-
 class DataBase : public QObject
 {
     Q_OBJECT
@@ -44,6 +47,7 @@ public:
     void AddDataBase(QString driver, QString nameDB = "");
     void DisconnectFromDataBase(QString nameDb = "");
     void RequestToDB(QString request);
+
     QSqlError GetLastError(void);
     void ConnectToDataBase(QVector<QString> dataForConnect);
 
@@ -59,6 +63,7 @@ signals:
 private:
 
     QSqlDatabase* dataBase;
+
 
 };
 

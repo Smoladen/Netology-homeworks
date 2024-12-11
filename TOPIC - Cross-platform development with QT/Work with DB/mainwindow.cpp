@@ -102,21 +102,34 @@ void MainWindow::on_act_connect_triggered()
 void MainWindow::on_pb_request_clicked()
 {
 
-    //new
 
     uint8_t selectedGenre = (ui->cb_category->currentIndex() + 1);
 
     if (selectedGenre == requestAllFilms)
     {
 
-        queryModel = new QSqlQueryModel(this);
-        QString queryStr;
-         queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id";
-        queryModel->setQuery(queryStr, *dataBase->getDatabase());
-        queryModel->setHeaderData(0, Qt::Horizontal, tr("Movie Title"));
-        queryModel->setHeaderData(1, Qt::Horizontal, tr("Movie Description"));
-        ui->tableView->setModel(queryModel);
+//        queryModel = new QSqlQueryModel(this);
+//        QString queryStr;
+//         queryStr = "SELECT title, description FROM film JOIN film_category ON film.film_id = film_category.film_id JOIN category ON film_category.category_id = category.category_id";
+//        queryModel->setQuery(queryStr, *dataBase->getDatabase());
+//        queryModel->setHeaderData(0, Qt::Horizontal, tr("Movie Title"));
+//        queryModel->setHeaderData(1, Qt::Horizontal, tr("Movie Description"));
+//        ui->tableView->setModel(queryModel);
 
+        tableModel = new QSqlTableModel(this, *dataBase->getDatabase());
+        tableModel->setTable("film");
+        tableModel->select();
+        tableModel->setHeaderData(1, Qt::Horizontal, tr("Movie Title"));
+        tableModel->setHeaderData(2, Qt::Horizontal, tr("Movie Description"));
+        ui->tableView->setModel(tableModel);
+        //Это конечно что то из темной Эры технологий но работает.
+        for (int col = 0; col < tableModel->columnCount(); ++col)
+        {
+            if (col != 1 && col != 2)
+            {
+                ui->tableView->setColumnHidden(col, true);
+            }
+        }
     }
     else
     {
@@ -137,6 +150,9 @@ void MainWindow::on_pb_request_clicked()
         queryModel->setHeaderData(1, Qt::Horizontal, tr("Movie Description"));
         ui->tableView->setModel(queryModel);
     }
+
+
+
 }
 
 void MainWindow::on_pb_clear_clicked()
