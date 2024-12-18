@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QtConcurrent>
+#include <QTimer>
 #include "database.h"
 
 
@@ -19,9 +20,14 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void updateConnectionStatus(bool status);
+    void tryConnectToDatabase();
 private:
+     QVector<QString> dataForConnect;
     Ui::MainWindow *ui;
 
     DataBase* dataBase;
+    QTimer* connectionRetryTimer;
 };
 #endif // MAINWINDOW_H
